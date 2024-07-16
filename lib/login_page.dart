@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends HookWidget {
@@ -42,6 +43,55 @@ class LoginPage extends HookWidget {
       }
     }
 
+    Future<void> signInWithGoogle() async {
+      /// Web client ID
+      const webClientId = '796643528136-gfpu5qaa8m514p09a36s6go8kjabbd4o.apps.googleusercontent.com';
+
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        clientId: webClientId,
+      );
+      final googleUser = await googleSignIn.signIn();
+      final googleAuth = await googleUser!.authentication;
+      final accessToken = googleAuth.accessToken;
+      final idToken = googleAuth.idToken;
+
+      if (accessToken == null) {
+        throw 'No Access Token found.';
+      }
+      if (idToken == null) {
+        throw 'No ID Token found.';
+      }
+
+      try {
+        final AuthResponse response = await supabase.auth.signInWithIdToken(
+          provider: OAuthProvider.google,
+          idToken: idToken,
+          accessToken: accessToken,
+        );
+
+        final Session? session = response.session;
+        final User? user = response.user;
+
+        if (user != null) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Login with Google Successful!'),
+          ));
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Login with Google Failed: Unknown error'),
+          ));
+        }
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Login with Google Failed: $error'),
+        ));
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Login'),
@@ -63,6 +113,11 @@ class LoginPage extends HookWidget {
             ElevatedButton(
               onPressed: signIn,
               child: Text('Login'),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: signInWithGoogle,
+              child: Text('Login with Google'),
             ),
           ],
         ),
