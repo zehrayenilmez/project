@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'home_page.dart';
 
 class LoginPage extends HookWidget {
   @override
@@ -20,16 +21,16 @@ class LoginPage extends HookWidget {
           password: password,
         );
 
-        final Session? session = response.session;
         final User? user = response.user;
 
         if (user != null) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Login Successful!'),
           ));
+          final userName = email.split('@')[0]; // Kullanıcı adını email adresinden al
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => HomePage()),
+            MaterialPageRoute(builder: (context) => HomePage(userName: userName)),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -44,7 +45,6 @@ class LoginPage extends HookWidget {
     }
 
     Future<void> signInWithGoogle() async {
-      /// Web client ID
       const webClientId = '796643528136-gfpu5qaa8m514p09a36s6go8kjabbd4o.apps.googleusercontent.com';
 
       final GoogleSignIn googleSignIn = GoogleSignIn(
@@ -69,16 +69,16 @@ class LoginPage extends HookWidget {
           accessToken: accessToken,
         );
 
-        final Session? session = response.session;
         final User? user = response.user;
 
         if (user != null) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Login with Google Successful!'),
           ));
+          final userName = user.email!.split('@')[0]; // Kullanıcı adını email adresinden al
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => HomePage()),
+            MaterialPageRoute(builder: (context) => HomePage(userName: userName)),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -121,20 +121,6 @@ class LoginPage extends HookWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Home'),
-      ),
-      body: Center(
-        child: Text('Welcome to the home page!'),
       ),
     );
   }
